@@ -1,0 +1,20 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
+
+include <unittest.bare>
+
+
+# Start coverage
+coverageStart()
+
+# Test includes
+include 'testMobstiq.bare'
+
+# Stop coverage
+coverageStop()
+
+# Test report
+return unittestReport({ \
+    'coverageExclude': ['runTests.bare'], \
+    'coverageMin': 5 \
+})

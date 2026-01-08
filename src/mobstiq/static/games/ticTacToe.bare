@@ -1,0 +1,151 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
+
+include <forms.bare>
+
+
+# TicTacToe
+function ticTacToeMain(gameObj):
+    playerSelf = objectGet(gameObj, 'self')
+    players = objectGet(gameObj, 'players')
+    game = objectGet(gameObj, 'game')
+    updateFn = objectGet(gameObj, 'updateFn')
+    stopFn = objectGet(gameObj, 'stopFn')
+
+    # Render the title
+    title = 'Tic Tac Toe'
+    documentSetTitle(title)
+    markdownPrint('# ' + markdownEscape(title))
+
+    # Render the player legend
+    player1 = arrayGet(players, 0)
+    player2 = arrayGet(players, 1)
+    playerID1 = objectGet(player1, 'id')
+    playerID2 = objectGet(player2, 'id')
+    currentID = objectGet(game, 'current')
+    selfID = if(playerSelf, objectGet(playerSelf, 'id'))
+    isSelfPlayer1 = selfID == playerID1
+    markdownPrint('', '**Player 1:** ' + markdownEscape(objectGet(player1, 'name')) + if(currentID == playerID1, ' (current)', ''))
+    markdownPrint('', '**Player 2:** ' + markdownEscape(objectGet(player2, 'name')) + if(currentID == playerID2, ' (current)', ''))
+    if playerSelf:
+        markdownPrint('', 'You are ' + objectGet(playerSelf, 'name') + '.')
+    endif
+
+    # Get the game state
+    state = objectGet(game, 'state')
+    if state == null:
+        state = {'cells': [null, null, null, null, null, null, null, null, null]}
+    endif
+    ixWinner = objectGet(state, 'winnerIndex')
+    winner = if(ixWinner != null, arrayGet(players, ixWinner))
+    isDraw = objectGet(state, 'isDraw', false)
+    if winner:
+        markdownPrint('', 'The winner is **' + markdownEscape(objectGet(winner, 'name')) + '**!')
+    elif isDraw:
+        markdownPrint('', "It's a draw!")
+    endif
+
+    # Render the board
+    cells = objectGet(state, 'cells')
+    size = mathMin(400, windowWidth() - 3 * documentFontSize())
+    sepSize = 0.05 * size
+    sepFrac = (sepSize + (size - 2 * sepSize) / 3) / size
+    drawNew(size, size)
+    drawStyle('none', 0, 'white')
+    drawRect(0, 0, size, size)
+    drawStyle('black', sepSize, 'none')
+    drawMove(sepFrac * size, 0.05 * size)
+    drawLine(sepFrac * size, 0.95 * size)
+    drawMove((1 - sepFrac) * size, 0.05 * size)
+    drawLine((1 - sepFrac) * size, 0.95 * size)
+    drawMove(0.05 * size, sepFrac * size)
+    drawLine(0.95 * size, sepFrac * size)
+    drawMove(0.05 * size, (1 - sepFrac) * size)
+    drawLine(0.95 * size, (1 - sepFrac) * size)
+
+    # Render the X's and O's
+    cellSize = sepFrac * size - sepSize
+    cellStroke = 0.15 * cellSize
+    for cellValue, ixCell in cells:
+        ix = ixCell % 3
+        iy = mathFloor(ixCell / 3)
+        cellX = sepSize + (ix + 0.5) * cellSize
+        cellY = sepSize + (iy + 0.5) * cellSize
+        cellRadius = 0.3 * cellSize
+        if cellValue == 0:
+            # Render the X
+            drawStyle('blue', cellStroke, 'none')
+            drawMove(cellX - cellRadius, cellY - cellRadius)
+            drawLine(cellX + cellRadius, cellY + cellRadius)
+            drawMove(cellX - cellRadius, cellY + cellRadius)
+            drawLine(cellX + cellRadius, cellY - cellRadius)
+        elif cellValue == 1: # O's
+            # Render the O
+            drawStyle('red', cellStroke, 'none')
+            drawCircle(cellX, cellY, cellRadius)
+        elif !winner && updateFn:
+            # Render the click rect
+            drawStyle('none', 0, 'white')
+            drawRect(cellX - cellRadius, cellY - cellRadius, 2 * cellRadius, 2 * cellRadius)
+            drawOnClick(systemPartial(ticTacToeOnClick, updateFn, state, ix, iy, if(isSelfPlayer1, 0, 1)))
+        endif
+    endfor
+
+    # Stop game link
+    if stopFn:
+        elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Stop Game', stopFn)})
+    endif
+
+    # Restart link
+    if updateFn && (winner || isDraw):
+        elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Restart Game', systemPartial(ticTacToeOnRestart, updateFn))})
+    endif
+endfunction
+
+
+async function ticTacToeOnClick(updateFn, state, ix, iy, value):
+    # Update the state
+    cells = objectGet(state, 'cells')
+    arraySet(cells, 3 * iy + ix, value)
+
+    # Winner?
+    ixWinner = null
+    ixPlayer = 0
+    while ixPlayer < 2:
+        if (arrayGet(cells, 0) == ixPlayer && arrayGet(cells, 1) == ixPlayer && arrayGet(cells, 2) == ixPlayer) || \
+           (arrayGet(cells, 3) == ixPlayer && arrayGet(cells, 4) == ixPlayer && arrayGet(cells, 5) == ixPlayer) || \
+           (arrayGet(cells, 6) == ixPlayer && arrayGet(cells, 7) == ixPlayer && arrayGet(cells, 8) == ixPlayer) || \
+           (arrayGet(cells, 0) == ixPlayer && arrayGet(cells, 3) == ixPlayer && arrayGet(cells, 6) == ixPlayer) || \
+           (arrayGet(cells, 1) == ixPlayer && arrayGet(cells, 4) == ixPlayer && arrayGet(cells, 7) == ixPlayer) || \
+           (arrayGet(cells, 2) == ixPlayer && arrayGet(cells, 5) == ixPlayer && arrayGet(cells, 8) == ixPlayer) || \
+           (arrayGet(cells, 0) == ixPlayer && arrayGet(cells, 4) == ixPlayer && arrayGet(cells, 8) == ixPlayer) || \
+           (arrayGet(cells, 2) == ixPlayer && arrayGet(cells, 4) == ixPlayer && arrayGet(cells, 6) == ixPlayer):
+            ixWinner = ixPlayer
+            objectSet(state, 'winnerIndex', ixWinner)
+            break
+        endif
+        ixPlayer = ixPlayer + 1
+    endwhile
+
+    # Draw?
+    isDraw = false
+    if ixWinner == null:
+        isDraw = true
+        for cellValue in cells:
+            if cellValue == null:
+                isDraw = false
+                break
+            endif
+        endfor
+    endif
+    objectSet(state, 'isDraw', isDraw)
+
+    # Update the game state
+    updateFn(state)
+endfunction
+
+
+async function ticTacToeOnRestart(updateFn):
+    # Update the game state
+    updateFn({'cells': [null, null, null, null, null, null, null, null, null]})
+endfunction

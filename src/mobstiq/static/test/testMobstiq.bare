@@ -1,0 +1,12 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
+
+include <unittest.bare>
+
+include '../mobstiq.bare'
+
+
+async function testMobstiq():
+    unittestEqual(1 + 1, 2)
+endfunction
+unittestRunTest('testMobstiq')

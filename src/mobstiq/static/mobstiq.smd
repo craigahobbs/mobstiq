@@ -1,0 +1,236 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
+
+
+group
+
+
+# The GameInfo struct for the list of games
+struct GameInfo
+
+    # The game's name
+    string name
+
+    # The game's include file name
+    string include
+
+    # The game's function name
+    string function
+
+    # The minimum number of players
+    int(> 0) minPlayers
+
+    # The maximum number of players
+    int(> 0) maxPlayers
+
+
+# A list of GameInfo's
+typedef GameInfo[] GameInfos
+
+
+# A player identifier
+typedef string(len > 0) PlayerID
+
+
+# The currently running game
+struct CurrentGame
+
+    # The game name
+    string name
+
+    # The player IDs in play-order
+    PlayerID[] players
+
+    # The current player - if set, the game is started
+    optional PlayerID current
+
+    # The game state
+    optional any{} state
+
+
+# A game player
+struct Player
+
+    # The player ID
+    PlayerID id
+
+    # The player's name (e.g. "King Myron of the Evil Geeks")
+    string name
+
+
+group "mobstiq JSON"
+
+
+# The mobstiq config file format
+struct MobstiqConfig
+
+    # The map of player ID to registered players
+    Player{} players
+
+    # The current game
+    optional CurrentGame game
+
+
+group "mobstiq API"
+
+
+# Get the mobstiq service URL
+action getServiceURL
+    urls
+        GET
+
+    output
+        # The service URL
+        string url
+
+
+# Get the list of games
+action getGameList
+    urls
+        GET
+
+    output
+        # The list of games
+        GameInfo[] games
+
+
+# Register a player for control
+action playerRegister
+    urls
+        POST
+
+    input
+        # The new player's name
+        string name
+
+    output (Player)
+
+    errors
+        NameInUse
+
+
+# Validate a player ID
+action playerValidate
+    urls
+        POST
+
+    input
+        # The player ID to validate
+        PlayerID id
+
+    output (Player)
+
+    errors
+        InvalidPlayer
+
+
+# Get the current game state
+action gameState
+    urls
+        GET
+
+    output
+        # The current game state (if any)
+        optional CurrentGame game
+
+
+# Create a new game and begin setup
+action gameSetup
+    urls
+        POST
+
+    input
+        # The player ID
+        PlayerID id
+
+        # The game name
+        string name
+
+    errors
+        InUse
+        InvalidName
+        InvalidPlayer
+
+
+# Add a player to a game in setup
+action gameAddPlayer
+    urls
+        POST
+
+    input
+        # The player ID
+        PlayerID id
+
+    errors
+        InvalidPlayer
+        NotInSetup
+        TooManyPlayers
+
+
+# Remove a player from a game in setup
+action gameRemovePlayer
+    urls
+        POST
+
+    input
+        # The player ID
+        PlayerID id
+
+    errors
+        InvalidPlayer
+        NotInSetup
+
+
+# Start a game in setup
+action gameStart
+    urls
+        POST
+
+    input
+        # The player ID
+        PlayerID id
+
+    errors
+        InvalidPlayer
+        NotInSetup
+        TooFewPlayers
+
+
+# Update the current game state
+action gameUpdate
+    urls
+        POST
+
+    input
+        # The player ID
+        PlayerID id
+
+        # The updated game state
+        any{} state
+
+    errors
+        InvalidPlayer
+        NotInPlay
+
+
+# Stop the current game
+action gameStop
+    urls
+        POST
+
+    input
+        # The player ID
+        PlayerID id
+
+    errors
+        InvalidPlayer
+        NotInPlay
+
+
+# Get the game include BareScript text
+action gameInclude
+    urls
+        GET
+
+    errors
+        NotInPlay
