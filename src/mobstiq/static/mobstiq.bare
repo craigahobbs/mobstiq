@@ -99,21 +99,9 @@ async function mobstiqRunGame(playerSelf, players, game):
         objectSet(gameObj, 'updateFn', systemPartial(mobstiqRunGameUpdateFn, selfID))
     endif
 
-    # Get the game info
-    gameInfo = null
-    gameName = objectGet(game, 'name')
-    gamesResponse = jsonParse(systemFetch('getGameList'))
-    for tmpInfo in objectGet(gamesResponse, 'games'):
-        tmpName = objectGet(tmpInfo, 'name')
-        if gameName == tmpName:
-            gameInfo = tmpInfo
-            break
-        endif
-    endfor
-
     # Call the game function
     include 'gameInclude'
-    gameFn = systemGlobalGet(objectGet(gameInfo, 'function'))
+    gameFn = systemGlobalGet(systemGlobalGet('mobstiqGameIncludeFunction'))
     gameFn(gameObj)
 endfunction
 

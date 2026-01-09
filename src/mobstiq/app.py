@@ -314,7 +314,14 @@ def game_include(ctx, unused_req):
         game_name = game['name']
         game_info = next(game_info for game_info in GAMES if game_info['name'] == game_name)
         game_info_include = game_info['include']
+        game_info_function = game_info['function']
 
         # Return the BareScript with the game include
         ctx.start_response('200 OK', [('Content-Type', 'text/plain; charset=utf-8')])
-        return [f"include '{game_info_include}'\n".encode('utf-8')]
+        return [
+            f"""\
+include '{game_info_include}'
+
+mobstiqGameIncludeFunction = '{game_info_function}'
+""".encode('utf-8')
+        ]

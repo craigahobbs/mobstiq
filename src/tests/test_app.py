@@ -1952,7 +1952,14 @@ class TestAPI(unittest.TestCase):
             response = content_bytes.decode('utf-8')
             self.assertEqual(status, '200 OK')
             self.assertListEqual(headers, [('Content-Type', 'text/plain; charset=utf-8')])
-            self.assertEqual(response, "include 'games/ticTacToe.bare'\n")
+            self.assertEqual(
+                response,
+                """\
+include 'games/ticTacToe.bare'
+
+mobstiqGameIncludeFunction = 'ticTacToeMain'
+"""
+            )
 
             # Verify the app config - game should be removed
             expected_config = {
@@ -2016,7 +2023,14 @@ class TestAPI(unittest.TestCase):
             response = content_bytes.decode('utf-8')
             self.assertEqual(status, '200 OK')
             self.assertListEqual(headers, [('Content-Type', 'text/plain; charset=utf-8')])
-            self.assertEqual(response, "include 'games/ticTacToe.bare'\n")
+            self.assertEqual(
+                response,
+                """\
+include 'games/ticTacToe.bare'
+
+mobstiqGameIncludeFunction = 'ticTacToeMain'
+"""
+            )
 
             # Verify the app config (unchanged)
             expected_config = {

@@ -227,7 +227,8 @@ action gameStop
         NotInPlay
 
 
-# Get the game include BareScript text
+# Get a BareScript script that includes the current game and sets the game's function name in the
+# `mobstiqGameIncludeFunction` global variable.
 action gameInclude
     urls
         GET
