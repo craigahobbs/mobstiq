@@ -130,7 +130,7 @@ def get_service_url(unused_ctx, unused_req):
 @chisel.action(name='getGameList', types=MOBSTIQ_TYPES)
 def get_game_list(unused_ctx, unused_req):
     return {
-        'games': sorted(GAMES, key=lambda x: x['name'])
+        'games': GAMES
     }
 
 
