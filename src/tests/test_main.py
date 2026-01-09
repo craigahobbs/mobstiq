@@ -72,7 +72,6 @@ class TestMain(unittest.TestCase):
                 stdout.getvalue(),
                 '''\
 mobstiq: Serving at http://127.0.0.1:8080/ ...
-mobstiq: 200 GET /getServiceURL\x20
 '''
             )
             self.assertEqual(stderr.getvalue(), '')
@@ -119,7 +118,6 @@ mobstiq: 200 GET /getServiceURL\x20
                 stdout.getvalue(),
                 '''\
 mobstiq: Serving at http://127.0.0.1:8080/ ...
-mobstiq: 200 GET /getServiceURL\x20
 '''
             )
             self.assertEqual(stderr.getvalue(), '')
@@ -161,7 +159,6 @@ mobstiq: 200 GET /getServiceURL\x20
                 stdout.getvalue(),
                 '''\
 mobstiq: Serving at http://127.0.0.1:8080/ ...
-mobstiq: 200 GET /getServiceURL\x20
 '''
             )
             self.assertEqual(stderr.getvalue(), '')
@@ -206,7 +203,6 @@ mobstiq: 200 GET /getServiceURL\x20
                 stdout.getvalue(),
                 '''\
 mobstiq: Serving at http://127.0.0.1:8080/ ...
-mobstiq: 200 GET /getServiceURL\x20
 '''
             )
             self.assertEqual(stderr.getvalue(), '')
@@ -251,13 +247,12 @@ mobstiq: 200 GET /getServiceURL\x20
                 stdout.getvalue(),
                 '''\
 mobstiq: Serving at http://127.0.0.1:8080/ ...
-mobstiq: 200 GET /getServiceURL\x20
 '''
             )
             self.assertEqual(stderr.getvalue(), '')
 
 
-    def test_main_quiet(self):
+    def test_main_verbose(self):
         with create_test_files([]) as temp_dir, \
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
@@ -266,7 +261,7 @@ mobstiq: 200 GET /getServiceURL\x20
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
 
-            main(['-q', '-c', temp_dir])
+            main(['-v', '-c', temp_dir])
 
             mock_thread.assert_called_once_with(target=mock_open, args=('http://127.0.0.1:8080/',))
             thread_instance = mock_thread.return_value
@@ -289,7 +284,13 @@ mobstiq: 200 GET /getServiceURL\x20
             self.assertListEqual(start_response_calls, [('200 OK', [('Content-Type', 'application/json')])])
             self.assertDictEqual(response, {'url': 'http://192.168.1.100:8080'})
 
-            self.assertEqual(stdout.getvalue(), '')
+            self.assertEqual(
+                stdout.getvalue(),
+                '''\
+mobstiq: Serving at http://127.0.0.1:8080/ ...
+mobstiq: 200 GET /getServiceURL\x20
+'''
+            )
             self.assertEqual(stderr.getvalue(), '')
 
 

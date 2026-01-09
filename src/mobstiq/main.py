@@ -38,8 +38,10 @@ def main(argv=None):
                         help="don't start the back-end (use existing)")
     parser.add_argument('-n', dest='browser', action='store_false', default=True,
                         help="don't open a web browser")
-    parser.add_argument('-q', dest='quiet', action='store_true',
-                        help="don't display access logging")
+    parser.add_argument('-q', dest='quiet', action='store_true', default=True,
+                        help="hide access logging")
+    parser.add_argument('-v', dest='quiet', action='store_false',
+                        help="show access logging")
     args = parser.parse_args(args=argv)
 
     # Starting a backend server? If so, create the backend application.
@@ -75,14 +77,14 @@ def main(argv=None):
         # Wrap the backend so we can log status and environ
         def application_wrap(environ, start_response):
             def log_start_response(status, response_headers):
-                if not args.quiet:
-                    print(f'mobstiq: {status[0:3]} {environ["REQUEST_METHOD"]} {environ["PATH_INFO"]} {environ["QUERY_STRING"]}')
+                status_code = status[0:3]
+                if not args.quiet or status_code not in ('200', '304'):
+                    print(f'mobstiq: {status_code} {environ["REQUEST_METHOD"]} {environ["PATH_INFO"]} {environ["QUERY_STRING"]}')
                 return start_response(status, response_headers)
             return application(environ, log_start_response)
 
         # Start the backend application
-        if not args.quiet:
-            print(f'mobstiq: Serving at {url} ...')
+        print(f'mobstiq: Serving at {url} ...')
         waitress.serve(application_wrap, port=args.port)
 
     # Not starting a backend service, so we must wait on the web browser start
