@@ -46,6 +46,7 @@ class Mobstiq(chisel.Application):
         # Front-end statics
         self.add_static('index.html', urls=(('GET', None), ('GET', '/')))
         self.add_static('mobstiq.bare')
+        self.add_static('games/checkers.bare')
         self.add_static('games/ticTacToe.bare')
 
 

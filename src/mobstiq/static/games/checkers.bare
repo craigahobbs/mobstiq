@@ -1,0 +1,72 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
+
+
+# Checkers
+function checkersMain(gameObj):
+    playerSelf = objectGet(gameObj, 'self')
+    players = objectGet(gameObj, 'players')
+    game = objectGet(gameObj, 'game')
+    updateFn = objectGet(gameObj, 'updateFn')
+    stopFn = objectGet(gameObj, 'stopFn')
+
+    # Render the title
+    title = 'Checkers'
+    documentSetTitle(title)
+    markdownPrint('# ' + markdownEscape(title))
+
+    # Render the player legend
+    player1 = arrayGet(players, 0)
+    player2 = arrayGet(players, 1)
+    playerID1 = objectGet(player1, 'id')
+    playerID2 = objectGet(player2, 'id')
+    currentID = objectGet(game, 'current')
+    selfID = if(playerSelf, objectGet(playerSelf, 'id'))
+    isSelfPlayer1 = selfID == playerID1
+    markdownPrint('', '**Player 1:** ' + markdownEscape(objectGet(player1, 'name')) + if(currentID == playerID1, ' (current)', ''))
+    markdownPrint('', '**Player 2:** ' + markdownEscape(objectGet(player2, 'name')) + if(currentID == playerID2, ' (current)', ''))
+    if playerSelf:
+        markdownPrint('', 'You are ' + objectGet(playerSelf, 'name') + '.')
+    endif
+
+    # Get the game state
+    state = objectGet(game, 'state')
+    if state == null:
+        state = {}
+    endif
+    ixWinner = objectGet(state, 'winnerIndex')
+    winner = if(ixWinner != null, arrayGet(players, ixWinner))
+    isDraw = objectGet(state, 'isDraw', false)
+    if winner:
+        markdownPrint('', 'The winner is **' + markdownEscape(objectGet(winner, 'name')) + '**!')
+    elif isDraw:
+        markdownPrint('', "It's a draw!")
+    endif
+
+    # Render the board
+    fontSize = documentFontSize()
+    size = mathMin(windowHeight() - 16 * fontSize, windowWidth() - 3 * fontSize)
+    sepSize = 0.02 * size
+    drawNew(size, size)
+    drawStyle('none', 0, 'white')
+    drawRect(0, 0, size, size)
+    drawStyle('black', sepSize, 'none')
+    drawMove(0, 0)
+    drawLine(size, size)
+
+    # Stop game link
+    if stopFn:
+        elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Stop Game', stopFn)})
+    endif
+
+    # Restart link
+    if updateFn && (winner || isDraw):
+        elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Restart Game', systemPartial(checkersOnRestart, updateFn))})
+    endif
+endfunction
+
+
+async function checkersOnRestart(updateFn):
+    # Update the game state
+    updateFn({})
+endfunction
