@@ -78,6 +78,8 @@ endfunction
 
 # The game page
 async function mobstiqRunGame(playerSelf, players, game):
+    playerID = if(playerSelf, objectGet(playerSelf, 'id'))
+
     # Set the window resize
     windowSetResize(mobstiqMain)
 
@@ -85,18 +87,17 @@ async function mobstiqRunGame(playerSelf, players, game):
     windowSetTimeout(systemPartial(mobstiqRunGameTimeout, game), mobstiqRunGameTimeoutPeriod)
 
     # Create the game object
-    selfID = if(playerSelf, objectGet(playerSelf, 'id'))
     currentID = objectGet(game, 'current')
     gameObj = { \
         'self': playerSelf, \
         'players': players, \
         'game': game \
     }
-    if selfID:
-        objectSet(gameObj, 'stopFn', systemPartial(mobstiqRunGameStopFn, selfID))
+    if playerID:
+        objectSet(gameObj, 'stopFn', systemPartial(mobstiqRunGameStopFn, playerID))
     endif
-    if selfID && selfID == currentID:
-        objectSet(gameObj, 'updateFn', systemPartial(mobstiqRunGameUpdateFn, selfID))
+    if playerID && playerID == currentID:
+        objectSet(gameObj, 'updateFn', systemPartial(mobstiqRunGameUpdateFn, playerID))
     endif
 
     # Call the game function
@@ -147,25 +148,25 @@ mobstiqRunGameTimeoutPeriod = 250
 # The controller page
 async function mobstiqControllerPage():
     # Player setup?
-    playerID = mobstiqPlayerSetup()
-    if !playerID:
+    playerSelf = mobstiqPlayerSetup()
+    if !playerSelf:
         return
     endif
 
     # Start game?
-    game = mobstiqStartGame(playerID)
+    game = mobstiqStartGame(playerSelf)
     if !game:
         return
     endif
 
     # Add players?
-    addPlayersResult = mobstiqAddPlayers(playerID, game)
-    if !addPlayersResult:
+    players = mobstiqAddPlayers(playerSelf, game)
+    if !players:
         return
     endif
 
     # Run the game
-    mobstiqRunGame(arrayGet(addPlayersResult, 0), arrayGet(addPlayersResult, 1), game)
+    mobstiqRunGame(playerSelf, players, game)
 endfunction
 
 
@@ -173,8 +174,10 @@ endfunction
 async function mobstiqPlayerSetup():
     # Get the player ID from local storage
     playerID = localStorageGet(mobstiqPlayerIDKey)
-    if playerID && systemFetch({'url': 'playerValidate', 'body': jsonStringify({'id': playerID})}):
-        return playerID
+    playerResponse = systemFetch({'url': 'playerValidate', 'body': jsonStringify({'id': playerID})})
+    if playerResponse:
+        playerSelf = jsonParse(playerResponse)
+        return playerSelf
     endif
 
     # Render the player setup title
@@ -195,10 +198,10 @@ endfunction
 async function mobstiqPlayerSetupOnSubmit():
     # Register the player name and set the player ID in local storage
     playerName = documentInputValue(mobstiqPlayerNameID)
-    playerResultText = systemFetch({'url': 'playerRegister', 'body': jsonStringify({'name': playerName})})
-    if playerResultText:
-        playerResult = jsonParse(playerResultText)
-        playerID = objectGet(playerResult, 'id')
+    playerResponse = systemFetch({'url': 'playerRegister', 'body': jsonStringify({'name': playerName})})
+    if playerResponse:
+        playerSelf = jsonParse(playerResponse)
+        playerID = objectGet(playerSelf, 'id')
         localStorageSet(mobstiqPlayerIDKey, playerID)
     endif
 
@@ -216,7 +219,7 @@ mobstiqPlayerNameID = 'PlayerName'
 
 
 # The game start page
-async function mobstiqStartGame(playerID):
+async function mobstiqStartGame(playerSelf):
     # Get the game state
     gameResponse = jsonParse(systemFetch('gameState'))
     game = objectGet(gameResponse, 'game')
@@ -229,12 +232,15 @@ async function mobstiqStartGame(playerID):
     documentSetTitle(title)
     markdownPrint('# ' + markdownEscape(title))
 
+    # The player name
+    markdownPrint('', '**Player Name:** ' + markdownEscape(objectGet(playerSelf, 'name')))
+
     # Render the list of games
     gamesElements = []
     gamesResponse = jsonParse(systemFetch('getGameList'))
     for gameInfo in objectGet(gamesResponse, 'games'):
         gameName = objectGet(gameInfo, 'name')
-        arrayPush(gamesElements, {'html': 'p', 'elem': formsLinkButtonElements(gameName, systemPartial(mobstiqStartGameOnStart, playerID, gameInfo))})
+        arrayPush(gamesElements, {'html': 'p', 'elem': formsLinkButtonElements(gameName, systemPartial(mobstiqStartGameOnStart, playerSelf, gameInfo))})
     endfor
     elementModelRender(gamesElements)
 
@@ -244,7 +250,9 @@ endfunction
 
 
 # The game start page on-start event handler
-async function mobstiqStartGameOnStart(playerID, gameInfo):
+async function mobstiqStartGameOnStart(playerSelf, gameInfo):
+    playerID = objectGet(playerSelf, 'id')
+
     # Setup the game
     gameName = objectGet(gameInfo, 'name')
     systemFetch({'url': 'gameSetup', 'body': jsonStringify({'id': playerID, 'name': gameName})})
@@ -255,24 +263,24 @@ endfunction
 
 
 # The add players page
-async function mobstiqAddPlayers(playerID, game):
+async function mobstiqAddPlayers(playerSelf, game):
+    playerID = objectGet(playerSelf, 'id')
+
     # Get the current player info
-    playerValidateRequests = [{'url': 'playerValidate', 'body': jsonStringify({'id': playerID})}]
+    playerRequests = []
     playerIDs = objectGet(game, 'players')
     playerCount = arrayLength(playerIDs)
     for tmpID in playerIDs:
-        arrayPush(playerValidateRequests, {'url': 'playerValidate', 'body': jsonStringify({'id': tmpID})})
+        arrayPush(playerRequests, {'url': 'playerValidate', 'body': jsonStringify({'id': tmpID})})
     endfor
-    playersValidate = []
-    for playerText in systemFetch(playerValidateRequests):
-        arrayPush(playersValidate, jsonParse(playerText))
+    players = []
+    for playerResponse in systemFetch(playerRequests):
+        arrayPush(players, jsonParse(playerResponse))
     endfor
-    playerSelf = arrayGet(playersValidate, 0)
-    players = arraySlice(playersValidate, 1)
 
     # Get the game state
     if objectGet(game, 'current'):
-        return [playerSelf, players]
+        return players
     endif
 
     # Get the game info
@@ -301,6 +309,11 @@ async function mobstiqAddPlayers(playerID, game):
     # The join-game link
     if playerCount < maxPlayers && arrayIndexOf(playerIDs, playerID) == -1:
         elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Join Game', systemPartial(mobstiqAddPlayersOnJoin, playerID))})
+    endif
+
+    # The stop-game link
+    if arrayIndexOf(playerIDs, playerID) != -1:
+        elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Stop Game', systemPartial(mobstiqRunGameStopFn, playerID))})
     endif
 
     # The start-game link
