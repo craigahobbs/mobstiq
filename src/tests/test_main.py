@@ -37,9 +37,15 @@ class TestMain(unittest.TestCase):
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
              unittest.mock.patch('waitress.serve') as mock_serve, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[(2, 1, 6, '', ('192.168.1.100', 0))]), \
+             unittest.mock.patch('socket.socket') as mock_socket_class, \
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
 
             main([])
 
@@ -83,9 +89,15 @@ mobstiq: Serving at http://127.0.0.1:8080/ ...
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
              unittest.mock.patch('waitress.serve') as mock_serve, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[(2, 1, 6, '', ('192.168.1.100', 0))]), \
+             unittest.mock.patch('socket.socket') as mock_socket_class, \
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
 
             main([])
 
@@ -128,9 +140,15 @@ mobstiq: Serving at http://127.0.0.1:8080/ ...
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
              unittest.mock.patch('waitress.serve') as mock_serve, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[(2, 1, 6, '', ('192.168.1.100', 0))]), \
+             unittest.mock.patch('socket.socket') as mock_socket_class, \
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
 
             main(['-c', temp_dir])
 
@@ -172,9 +190,15 @@ mobstiq: Serving at http://127.0.0.1:8080/ ...
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
              unittest.mock.patch('waitress.serve') as mock_serve, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[(2, 1, 6, '', ('192.168.1.100', 0))]), \
+             unittest.mock.patch('socket.socket') as mock_socket_class, \
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
 
             main(['-c', temp_dir])
 
@@ -216,9 +240,15 @@ mobstiq: Serving at http://127.0.0.1:8080/ ...
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
              unittest.mock.patch('waitress.serve') as mock_serve, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[(2, 1, 6, '', ('192.168.1.100', 0))]), \
+             unittest.mock.patch('socket.socket') as mock_socket_class, \
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
 
             main(['-c', os.path.join(temp_dir, 'mobstiq.json')])
 
@@ -257,9 +287,15 @@ mobstiq: Serving at http://127.0.0.1:8080/ ...
              unittest.mock.patch('threading.Thread') as mock_thread, \
              unittest.mock.patch('webbrowser.open') as mock_open, \
              unittest.mock.patch('waitress.serve') as mock_serve, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[(2, 1, 6, '', ('192.168.1.100', 0))]), \
+             unittest.mock.patch('socket.socket') as mock_socket_class, \
              unittest.mock.patch('sys.stdout', StringIO()) as stdout, \
              unittest.mock.patch('sys.stderr', StringIO()) as stderr:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
 
             main(['-v', '-c', temp_dir])
 

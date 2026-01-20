@@ -3,6 +3,7 @@
 
 import json
 import os
+import socket
 import unittest
 import unittest.mock
 import uuid
@@ -81,10 +82,14 @@ class TestAPI(unittest.TestCase):
 
     def test_get_service_url(self):
         with create_test_files([]) as temp_dir, \
-             unittest.mock.patch('socket.getaddrinfo', return_value=[
-                 (2, 1, 6, '', ('127.0.0.1', 0)),
-                 (2, 1, 6, '', ('192.168.1.100', 0))
-             ]) as mock_getaddrinfo:
+             unittest.mock.patch('socket.socket') as mock_socket_class:
+
+            # Setup the socket mock
+            mock_sock = mock_socket_class.return_value
+            mock_sock.__enter__.return_value = mock_sock
+            mock_sock.__exit__.return_value = None
+            mock_sock.getsockname.return_value = ('192.168.1.100', 54321)
+
             config_path = os.path.join(temp_dir, 'mobstiq.json')
             app = Mobstiq(config_path)
 
@@ -93,7 +98,11 @@ class TestAPI(unittest.TestCase):
             self.assertEqual(status, '200 OK')
             self.assertListEqual(headers, [('Content-Type', 'application/json')])
             self.assertDictEqual(response, {'url': 'http://192.168.1.100:8080'})
-            mock_getaddrinfo.assert_called_once()
+
+            # Verify the socket getsockname call
+            mock_socket_class.assert_called_once_with(socket.AF_INET, socket.SOCK_DGRAM)
+            mock_sock.connect.assert_called_once_with(('10.255.255.255', 1))
+            mock_sock.getsockname.assert_called_once()
 
             # Verify the app config
             expected_config = {'players': {}}

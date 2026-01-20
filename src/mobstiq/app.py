@@ -117,11 +117,11 @@ GAMES = schema_markdown.validate_type(MOBSTIQ_TYPES, 'GameInfos', [
 
 @chisel.action(name='getServiceURL', types=MOBSTIQ_TYPES)
 def get_service_url(unused_ctx, unused_req):
-    # Get the first non-loopback IP
-    hostname = socket.gethostname()
-    addr_info = socket.getaddrinfo(hostname, None, socket.AF_INET)
-    local_ips = [info[4][0] for info in addr_info if not info[4][0].startswith('127.')]
-    local_ip = local_ips[0]
+    # Create a UDP socket and connect to a public IP (no actual connection is made)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.connect(('10.255.255.255', 1))
+        local_ip = s.getsockname()[0]
+
     return {
         'url': f'http://{local_ip}:8080'
     }
