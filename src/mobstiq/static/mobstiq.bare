@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
 
 include <args.bare>
+include <draw.bare>
 include <forms.bare>
 include <qrcode.bare>
 
@@ -70,6 +71,7 @@ async function mobstiqMainConnect():
     size = 300
     drawNew(size, size)
     qrcodeDraw(url, 0, 0, size)
+    drawRender()
 
     # Set the game state check timeout
     windowSetTimeout(systemPartial(mobstiqRunGameTimeout, null), mobstiqRunGameTimeoutPeriod)
