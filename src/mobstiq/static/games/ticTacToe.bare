@@ -90,6 +90,7 @@ function ticTacToeMain(gameObj):
             drawOnClick(systemPartial(ticTacToeOnClick, updateFn, state, ix, iy, if(isSelfPlayer1, 0, 1)))
         endif
     endfor
+    drawRender()
 
     # Stop game link
     if stopFn:

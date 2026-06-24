@@ -53,6 +53,7 @@ function checkersMain(gameObj):
     drawStyle('black', sepSize, 'none')
     drawMove(0, 0)
     drawLine(size, size)
+    drawRender()
 
     # Stop game link
     if stopFn:
