@@ -1,6 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/mobstiq/blob/main/LICENSE
 
+include <draw.bare>
+include <forms.bare>
+
 
 # Checkers
 function checkersMain(gameObj):
