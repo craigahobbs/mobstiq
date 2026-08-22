@@ -38,7 +38,8 @@ clean:
 .PHONY: test-app
 commit: test-app
 test-app: $(DEFAULT_VENV_BUILD)
-	$(DEFAULT_VENV_BIN)/bare -x -m src/mobstiq/static/*.bare src/mobstiq/static/test/*.bare
+	$(DEFAULT_VENV_BIN)/bare -x -m src/mobstiq/static/*.bare src/mobstiq/static/test/test*.bare
+	$(DEFAULT_VENV_BIN)/bare -s -m src/mobstiq/static/test/runTests.bare
 	$(DEFAULT_VENV_BIN)/bare -d -m src/mobstiq/static/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
